@@ -1,0 +1,19 @@
+language: java
+sudo: false #faster builds
+
+jdk:
+  - oraclejdk8
+
+before_script:
+  - chmod +x gradlew
+
+script:
+  - ./gradlew check
+  - ./gradlew codeCoverageReport
+
+cache:
+  directories:
+    - $HOME/.m2
+
+after_success:
+    - bash <(curl -s https://codecov.io/bash) -t e7aa621e-c9e9-4338-83b8-acf74eb277ac
