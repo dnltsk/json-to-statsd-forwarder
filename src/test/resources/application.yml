@@ -1,0 +1,11 @@
+forwarder:
+  statsd-server:
+    host: localhost
+    port: 8125
+    prefix: simple-forwarder
+
+  refreshIntervalInSeconds: 5
+
+  forwards:
+    - jsonSourceUrl: http://localhost:8080/metrics
+      targetPrefix: demo-forward.localhost.metrics
