@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import java.time.Instant
 
+
 @Configuration
 @EnableScheduling
 class ScheduledJob {
@@ -26,7 +27,7 @@ class ScheduledJob {
     @Autowired
     lateinit var jsonFlattener: JsonFlattener
 
-    @Scheduled(fixedRate = 5_000, initialDelay = 5_000)
+    @Scheduled(fixedDelay = 5_000, initialDelay = 5_000)
     fun scheduleFixedRateTask() {
         log.info("#")
         log.info("# Fixed rate task - " + Instant.now())
@@ -40,7 +41,6 @@ class ScheduledJob {
         forwarderConfig.statsdServer!!
         forwarderConfig.statsdServer!!.prefix
 
-        //TODO: Coroutines!
         for (forward in forwarderConfig.forwards!!) {
             try {
                 handleForward(forward)
