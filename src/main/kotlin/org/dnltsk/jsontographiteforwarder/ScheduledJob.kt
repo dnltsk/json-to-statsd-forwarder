@@ -8,18 +8,19 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.scheduling.annotation.Scheduled
 import java.time.Instant
+import javax.annotation.PostConstruct
 
 
 @Configuration
 @EnableScheduling
 class ScheduledJob {
 
-    private val log = LoggerFactory.getLogger(this::class.java)
+    private final val log = LoggerFactory.getLogger(this::class.java)
+
+    lateinit var statsd: StatsDClient
 
     @Autowired
     lateinit var forwarderConfig: ForwarderConfig
-
-    var statsd: StatsDClient? = null
 
     @Autowired
     lateinit var jsonLoader: JsonLoader
@@ -27,16 +28,19 @@ class ScheduledJob {
     @Autowired
     lateinit var jsonFlattener: JsonFlattener
 
+    @PostConstruct
+    private fun initStatsd(){
+        statsd = NonBlockingStatsDClient(
+            forwarderConfig.statsdServer!!.prefix,
+            forwarderConfig.statsdServer!!.host,
+            forwarderConfig.statsdServer!!.port)
+    }
+
     @Scheduled(fixedDelay = 5_000, initialDelay = 5_000)
     fun scheduleFixedRateTask() {
         log.info("#")
         log.info("# Fixed rate task - " + Instant.now())
         log.info("#")
-
-        statsd = NonBlockingStatsDClient(
-            forwarderConfig.statsdServer!!.prefix,
-            forwarderConfig.statsdServer!!.host,
-            forwarderConfig.statsdServer!!.port)
 
         forwarderConfig.statsdServer!!
         forwarderConfig.statsdServer!!.prefix
@@ -48,6 +52,7 @@ class ScheduledJob {
                 log.error("error while handling ${forward.jsonSourceUrl}", e)
             }
         }
+
     }
 
     private fun handleForward(forward: Forward) {
@@ -58,7 +63,7 @@ class ScheduledJob {
             val longValue = Math.round(doubleValue)
             val key = forward.targetPrefix!! + "." + entry.key
             log.info("$key: $doubleValue")
-            statsd!!.recordGaugeValue(key, longValue);
+            statsd.recordGaugeValue(key, longValue);
         }
     }
 
